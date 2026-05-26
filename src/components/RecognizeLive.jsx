@@ -275,9 +275,10 @@ export default function RecognizeLive() {
             <video
               ref={videoRef} autoPlay muted playsInline
               className="scan-video"
-              style={{ opacity: camActive ? 1 : 0 }}
+              style={{ opacity: camActive ? 1 : 0, transform: 'scaleX(-1)' }}
             />
-            <canvas ref={canvasRef} className="scan-canvas" />
+            <canvas ref={canvasRef} className="scan-canvas"
+              style={{ transform: 'scaleX(-1)' }} />
 
             {!camActive && (
               <div className="scan-idle-overlay">

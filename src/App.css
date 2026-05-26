@@ -183,8 +183,8 @@ html, body, #root { min-height: 100vh; background: var(--bg); color: var(--text)
   width: 100%; height: 100%;
   object-fit: cover;
 }
-.scan-video  { z-index: 1;  transform: scaleX(-1); }
-.scan-canvas { z-index: 2;  transform: scaleX(-1); }
+.scan-video  { z-index: 1; }
+.scan-canvas { z-index: 2; }
 
 /* Overlay inactivo */
 .scan-idle-overlay {
@@ -428,7 +428,6 @@ html, body, #root { min-height: 100vh; background: var(--bg); color: var(--text)
 
 .reg-video {
   width: 100%; height: 100%; object-fit: cover;
-  transform: scaleX(-1);
 }
 .reg-preview {
   width: 100%; height: 100%; object-fit: cover;

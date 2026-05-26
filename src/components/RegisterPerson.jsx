@@ -265,7 +265,10 @@ export default function RegisterPerson() {
             <div className={`reg-oval ${flashOk ? 'oval-flash' : ''} ${capturePhase === 'complete' ? 'oval-ok' : ''}`}>
               <video
                 ref={videoRef} autoPlay muted playsInline className="reg-video"
-                style={{ display: (camOn && capturePhase !== 'complete') ? 'block' : 'none' }}
+                style={{
+                  display: (camOn && capturePhase !== 'complete') ? 'block' : 'none',
+                  transform: 'scaleX(-1)'
+                }}
               />
               {(capturePhase === 'complete' || (tab === 'archivo' && filePreview)) && photoSrc && (
                 <img src={photoSrc} className="reg-preview" alt="preview" />

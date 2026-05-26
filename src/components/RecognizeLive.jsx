@@ -15,7 +15,10 @@ const MESH_GROUPS = [
   [60,61,62,63,64,65,66,67,60],
 ]
 
-function drawFace(ctx, { box, landmarks, nombre, persona }) {
+function drawFace(ctx, { box, landmarks, nombre, persona }, canvasWidth) {
+  // Mirror x-coordinate to match CSS scaleX(-1) on video
+  const mx = x => canvasWidth - x
+
   const reconocido = nombre !== 'Desconocido'
   const green   = '#30d158'
   const blue    = '#0a84ff'
@@ -28,34 +31,36 @@ function drawFace(ctx, { box, landmarks, nombre, persona }) {
   ctx.strokeStyle = colorDim
   for (const group of MESH_GROUPS) {
     ctx.beginPath()
-    ctx.moveTo(landmarks[group[0]].x, landmarks[group[0]].y)
+    ctx.moveTo(mx(landmarks[group[0]].x), landmarks[group[0]].y)
     for (let i = 1; i < group.length; i++) {
-      ctx.lineTo(landmarks[group[i]].x, landmarks[group[i]].y)
+      ctx.lineTo(mx(landmarks[group[i]].x), landmarks[group[i]].y)
     }
     ctx.stroke()
   }
   for (const pt of landmarks) {
     ctx.beginPath()
-    ctx.arc(pt.x, pt.y, 1.3, 0, Math.PI * 2)
+    ctx.arc(mx(pt.x), pt.y, 1.3, 0, Math.PI * 2)
     ctx.fillStyle = dotColor
     ctx.fill()
   }
 
   // ── Marco redondeado alrededor de la cara ─────────────────────────────────
-  const { x, y, width, height } = box
+  // box.x is the left edge in original coords; after mirroring, the new left = mx(box.x + box.width)
+  const { x: bx, y, width, height } = box
+  const fx = mx(bx + width)  // mirrored left edge
   const r = 10
   ctx.strokeStyle = color
   ctx.lineWidth   = 2
   ctx.beginPath()
-  ctx.moveTo(x + r, y)
-  ctx.lineTo(x + width - r, y)
-  ctx.quadraticCurveTo(x + width, y, x + width, y + r)
-  ctx.lineTo(x + width, y + height - r)
-  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height)
-  ctx.lineTo(x + r, y + height)
-  ctx.quadraticCurveTo(x, y + height, x, y + height - r)
-  ctx.lineTo(x, y + r)
-  ctx.quadraticCurveTo(x, y, x + r, y)
+  ctx.moveTo(fx + r, y)
+  ctx.lineTo(fx + width - r, y)
+  ctx.quadraticCurveTo(fx + width, y, fx + width, y + r)
+  ctx.lineTo(fx + width, y + height - r)
+  ctx.quadraticCurveTo(fx + width, y + height, fx + width - r, y + height)
+  ctx.lineTo(fx + r, y + height)
+  ctx.quadraticCurveTo(fx, y + height, fx, y + height - r)
+  ctx.lineTo(fx, y + r)
+  ctx.quadraticCurveTo(fx, y, fx + r, y)
   ctx.closePath()
   ctx.stroke()
 
@@ -67,7 +72,8 @@ function drawFace(ctx, { box, landmarks, nombre, persona }) {
   const padX     = 12, padY = 6
   const lw       = tw + padX * 2
   const lh       = fontSize + padY * 2
-  const lx       = x + width / 2 - lw / 2
+  const cx       = fx + width / 2          // center x of mirrored box
+  const lx       = cx - lw / 2
   const ly       = y - lh - 8
 
   // Fondo pill
@@ -85,8 +91,8 @@ function drawFace(ctx, { box, landmarks, nombre, persona }) {
   ctx.strokeStyle = color
   ctx.lineWidth   = 1
   ctx.setLineDash([3, 3])
-  ctx.moveTo(x + width / 2, Math.max(4 + lh, ly + lh))
-  ctx.lineTo(x + width / 2, y)
+  ctx.moveTo(cx, Math.max(4 + lh, ly + lh))
+  ctx.lineTo(cx, y)
   ctx.stroke()
   ctx.setLineDash([])
 }
@@ -205,7 +211,7 @@ export default function RecognizeLive() {
             }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height)
-            for (const r of resultados) drawFace(ctx, r)
+            for (const r of resultados) drawFace(ctx, r, canvas.width)
 
             const reconocidas = Object.values(
               Object.fromEntries(
@@ -277,8 +283,7 @@ export default function RecognizeLive() {
               className="scan-video"
               style={{ opacity: camActive ? 1 : 0, transform: 'scaleX(-1)' }}
             />
-            <canvas ref={canvasRef} className="scan-canvas"
-              style={{ transform: 'scaleX(-1)' }} />
+            <canvas ref={canvasRef} className="scan-canvas" />
 
             {!camActive && (
               <div className="scan-idle-overlay">

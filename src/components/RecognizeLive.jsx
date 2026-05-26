@@ -108,18 +108,20 @@ function roundRect(ctx, x, y, w, h, r) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function RecognizeLive() {
-  const [appState,     setAppState]   = useState('idle')   // idle|booting|ready|scanning|active
+  const [appState,     setAppState]   = useState('idle')
   const [personas,     setPersonas]   = useState([])
-  const [detected,     setDetected]   = useState([])       // [{...persona, reconocido}]
+  const [detected,     setDetected]   = useState([])
   const [errorMsg,     setErrorMsg]   = useState('')
   const [bootMsg,      setBootMsg]    = useState('')
   const [faceCount,    setFaceCount]  = useState(0)
 
-  const videoRef = useRef(null)
-  const canvasRef= useRef(null)
-  const streamRef= useRef(null)
-  const rafRef   = useRef(null)
-  const frameN   = useRef(0)
+  const videoRef      = useRef(null)
+  const canvasRef     = useRef(null)
+  const streamRef     = useRef(null)
+  const rafRef        = useRef(null)
+  const frameN        = useRef(0)
+  const clearTimerRef = useRef(null)   // timer para limpiar resultados con delay
+  const lastResultRef = useRef([])     // última detección válida (para estabilidad)
 
   useEffect(() => { boot(); return () => stopCamera() }, [])
 
@@ -164,46 +166,74 @@ export default function RecognizeLive() {
 
   function stopCamera() {
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    if (clearTimerRef.current) clearTimeout(clearTimerRef.current)
     streamRef.current?.getTracks().forEach(t => t.stop())
     streamRef.current = null
     const ctx = canvasRef.current?.getContext('2d')
     if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
     setAppState('ready'); setDetected([]); setFaceCount(0)
+    lastResultRef.current = []
   }
 
   const startLoop = useCallback(() => {
     async function tick() {
       frameN.current++
 
-      if (frameN.current % 4 === 0) {
+      // Procesar cada 6 frames (~10 análisis/seg) — menos parpadeo
+      if (frameN.current % 6 === 0) {
         const video  = videoRef.current
         const canvas = canvasRef.current
         if (!video || !canvas || video.readyState < 2) {
           rafRef.current = requestAnimationFrame(tick); return
         }
 
-        canvas.width  = video.videoWidth
-        canvas.height = video.videoHeight
+        // Solo redimensionar canvas si cambió el tamaño de video
+        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+          canvas.width  = video.videoWidth
+          canvas.height = video.videoHeight
+        }
         const ctx = canvas.getContext('2d')
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
 
         try {
           const resultados = await matchFaces(video, personas)
-          setFaceCount(resultados.length)
 
-          // Dibujar cada cara
-          for (const r of resultados) drawFace(ctx, r)
+          if (resultados.length > 0) {
+            // ── Hay caras → cancelar timer de limpieza y actualizar
+            if (clearTimerRef.current) {
+              clearTimeout(clearTimerRef.current)
+              clearTimerRef.current = null
+            }
 
-          // Actualizar cards de personas reconocidas
-          const reconocidas = resultados
-            .filter(r => r.nombre !== 'Desconocido')
-            .map(r => r.persona)
-          // Deduplicar por id
-          const unicos = Object.values(
-            Object.fromEntries(reconocidas.map(p => [p.id, p]))
-          )
-          setDetected(unicos)
-          setAppState(resultados.length > 0 ? 'active' : 'scanning')
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+            for (const r of resultados) drawFace(ctx, r)
+
+            const reconocidas = Object.values(
+              Object.fromEntries(
+                resultados.filter(r => r.nombre !== 'Desconocido')
+                  .map(r => [r.persona.id, r.persona])
+              )
+            )
+
+            lastResultRef.current = reconocidas
+            setFaceCount(resultados.length)
+            setDetected(reconocidas)
+            setAppState('active')
+
+          } else {
+            // ── Sin caras → esperar 1.5s antes de limpiar (evita parpadeo)
+            if (!clearTimerRef.current) {
+              clearTimerRef.current = setTimeout(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
+                setDetected([])
+                setFaceCount(0)
+                setAppState('scanning')
+                lastResultRef.current = []
+                clearTimerRef.current = null
+              }, 1500)
+            }
+            // Mientras tanto, redibuja la última detección válida en el canvas
+            // (no borrar, dejar que el canvas mantenga el último estado)
+          }
         } catch { /* frame incompleto */ }
       }
 

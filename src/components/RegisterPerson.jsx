@@ -157,9 +157,11 @@ export default function RegisterPerson() {
 
           {/* Ventana oval */}
           <div className={`reg-oval ${faceOk===true ? 'oval-ok' : faceOk===false ? 'oval-err' : ''}`}>
-            {camOn && (
-              <video ref={videoRef} autoPlay muted playsInline className="reg-video" />
-            )}
+            {/* Siempre en el DOM para que videoRef esté disponible al abrir cámara */}
+            <video
+              ref={videoRef} autoPlay muted playsInline className="reg-video"
+              style={{ display: camOn ? 'block' : 'none' }}
+            />
             {preview && !camOn && (
               <img src={preview} className="reg-preview" alt="preview" />
             )}

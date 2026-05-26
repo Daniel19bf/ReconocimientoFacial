@@ -283,6 +283,82 @@ html, body, #root { min-height: 100vh; background: var(--bg); color: var(--text)
   .reg-layout { grid-template-columns: 1fr; }
 }
 
+/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
+
+/* Tablets y móviles grandes (≤ 768px) */
+@media (max-width: 768px) {
+  /* Navbar */
+  .nav { padding: 0 1rem; }
+  .nav-name { font-size: .9rem; }
+  .nl { padding: .35rem .7rem; font-size: .8rem; }
+
+  /* Reconocimiento */
+  .faceid-page { padding: 1.5rem 1rem 3rem; gap: 1.5rem; }
+  .scan-wrap { width: 100%; }
+  .scan-ring-wide {
+    width: 96vw;
+    aspect-ratio: 4 / 3;
+    border-radius: 18px;
+  }
+  .scan-window-wide { border-radius: 15px; }
+  .scan-status { font-size: .85rem; }
+  .scan-actions { width: 100%; }
+  .scan-actions .faceid-btn,
+  .scan-actions .faceid-btn-ghost { flex: 1; }
+
+  .persons-grid { width: 96vw; gap: .75rem; }
+  .person-glass-card { flex: 1 1 100%; max-width: 100%; padding: 1rem; }
+
+  /* Registro */
+  .reg-page { padding: 1.5rem 1rem 3rem; }
+  .reg-title { font-size: 1.3rem; margin-bottom: 1.25rem; text-align: center; }
+  .reg-layout { gap: 1.25rem; }
+  .reg-photo-panel { width: 100%; }
+  .reg-tabs { width: 100%; max-width: 280px; }
+  .reg-oval { width: 200px; height: 240px; }
+  .reg-cam-controls { width: 100%; max-width: 280px; }
+  .reg-cam-controls .faceid-btn,
+  .reg-cam-controls .faceid-btn-ghost { flex: 1; }
+  .reg-msg { max-width: 100%; }
+  .reg-form { padding: 1.1rem; }
+  .rf-row { grid-template-columns: 1fr 1fr; gap: .5rem; }
+
+  /* Inputs más grandes para táctil */
+  .rf-group input, .rf-group textarea {
+    font-size: 16px; /* Evita zoom en iOS */
+    padding: .65rem .8rem;
+    min-height: 44px;
+  }
+  .faceid-btn, .faceid-btn-ghost { min-height: 44px; }
+}
+
+/* Móviles pequeños (≤ 480px) */
+@media (max-width: 480px) {
+  /* Navbar */
+  .nav-icon { display: none; }
+  .nl { padding: .3rem .6rem; font-size: .78rem; }
+
+  /* Reconocimiento */
+  .faceid-page { padding: 1rem .75rem 2.5rem; gap: 1.25rem; }
+  .scan-ring-wide { aspect-ratio: 1 / 1; border-radius: 16px; }
+  .scan-window-wide { border-radius: 13px; }
+
+  /* Cards full-width con layout horizontal en móvil */
+  .person-glass-card { gap: .75rem; padding: .9rem 1rem; }
+  .pgc-avatar { width: 44px; height: 44px; font-size: 1.2rem; }
+  .pgc-name { font-size: 1rem; }
+  .pgc-sub  { font-size: .78rem; margin-bottom: .5rem; }
+  .pgc-chip { font-size: .78rem; }
+
+  /* Registro */
+  .reg-page { padding: 1rem .75rem 2.5rem; }
+  .reg-title { font-size: 1.2rem; margin-bottom: 1rem; }
+  .reg-oval { width: min(72vw, 220px); height: min(86vw, 264px); }
+  .rf-row { grid-template-columns: 1fr; }
+  .rf-group { margin-bottom: .65rem; }
+  .faceid-btn.btn-block { font-size: .9rem; padding: .75rem; }
+}
+
 /* ── Panel foto ── */
 .reg-photo-panel { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
 
